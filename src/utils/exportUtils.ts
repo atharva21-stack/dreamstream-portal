@@ -1,5 +1,17 @@
 import { Task, Activity } from "@/types/task";
 
+/** Escape every field, including IDs, tags, and custom metadata. */
+function csvField(value: string | number): string {
+  const text = String(value);
+  return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+function exportDate(value: number | undefined): string {
+  if (value == null) return "";
+  const date = new Date(value);
+  return Number.isFinite(date.getTime()) ? date.toISOString() : "";
+}
+
 /**
  * Converts task data to CSV format for export
  */
@@ -33,26 +45,26 @@ export function tasksToCSV(tasks: Task[]): string {
   tasks.forEach(task => {
     const row = [
       task.id,
-      `"${(task.title || "").replace(/"/g, '""')}"`, // Escape quotes in title
-      `"${(task.description || "").replace(/"/g, '""')}"`, // Escape quotes in description
+      task.title || "",
+      task.description || "",
       task.status,
       task.priority || "medium",
-      task.createdAt ? new Date(task.createdAt).toISOString() : "",
-      task.dueDate ? new Date(task.dueDate).toISOString() : "",
+      exportDate(task.createdAt),
+      exportDate(task.dueDate),
       task.estimatedDuration || 0,
       task.actualDuration || 0,
       task.completionPercentage || 0,
-      task.tags ? `"${task.tags.join(", ")}"` : "",
+      task.tags?.join(", ") || "",
       task.metadata?.complexity || "medium",
       task.metadata?.impact || "medium",
-      task.metadata?.businessValue || 5,
-      task.metadata?.learningOpportunity || 5,
+      task.metadata?.businessValue ?? 5,
+      task.metadata?.learningOpportunity ?? 5,
       task.metadata?.domain || "",
       task.metadata?.aiEligible ? "Yes" : "No",
-      task.dependencies ? `"${task.dependencies.join(", ")}"` : ""
+      task.dependencies?.join(", ") || ""
     ];
     
-    csvContent += row.join(",") + "\n";
+    csvContent += row.map(csvField).join(",") + "\n";
   });
   
   return csvContent;
