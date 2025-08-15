@@ -24,5 +24,8 @@ dist-ssr
 *.sln
 *.sw?
 
-#environment variables
-# config.env
+# Local configuration
+.env
+.env.*
+!.env.example
+config.env
