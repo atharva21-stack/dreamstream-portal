@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Task } from '@/types/task';
-import { tasksToCSV } from './exportUtils';
+import { activitiesToCSV, tasksToCSV } from './exportUtils';
 
 const task: Task = {
   id: 'task-1', title: 'Write report', description: '', status: 'todo',
@@ -36,5 +36,24 @@ describe('task CSV exports', () => {
       complexity: 'low', impact: 'low', businessValue: 0, learningOpportunity: 0,
     } }]);
     expect(csv).toContain(',low,low,0,0,,No,');
+  });
+});
+
+describe('activity CSV exports', () => {
+  it('escapes activity identifiers and details consistently', () => {
+    const csv = activitiesToCSV([{
+      taskId: 'task,1', taskTitle: 'Review "draft"',
+      activity: { type: 'comment', timestamp: 0, details: 'Hello, "team"' },
+    }]);
+    expect(csv).toBe('Task ID,Task Title,Activity Type,Timestamp,Details\n' +
+      '"task,1","Review ""draft""",comment,1970-01-01T00:00:00.000Z,"Hello, ""team"""\n');
+  });
+
+  it('exports remaining data when an activity timestamp is invalid', () => {
+    const csv = activitiesToCSV([{
+      taskId: 'task-1', taskTitle: 'Example',
+      activity: { type: 'comment', timestamp: NaN, details: 'Still available' },
+    }]);
+    expect(csv).toContain('task-1,Example,comment,,Still available\n');
   });
 });

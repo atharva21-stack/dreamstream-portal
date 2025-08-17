@@ -146,13 +146,13 @@ export function activitiesToCSV(activities: Array<{taskId: string; taskTitle: st
   activities.forEach(item => {
     const row = [
       item.taskId,
-      `"${(item.taskTitle || "").replace(/"/g, '""')}"`, // Escape quotes in title
+      item.taskTitle || "",
       item.activity.type,
-      new Date(item.activity.timestamp).toISOString(),
-      `"${(item.activity.details || "").replace(/"/g, '""')}"`, // Escape quotes in details
+      exportDate(item.activity.timestamp),
+      item.activity.details || "",
     ];
     
-    csvContent += row.join(",") + "\n";
+    csvContent += row.map(csvField).join(",") + "\n";
   });
   
   return csvContent;
