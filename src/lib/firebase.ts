@@ -1,9 +1,9 @@
 import { readFirebaseConfig } from './firebaseConfig';
 
 import { initializeApp } from 'firebase/app';
-import { getAuth, connectAuthEmulator } from 'firebase/auth';
-import { getFirestore, connectFirestoreEmulator, enableNetwork, disableNetwork, enableIndexedDbPersistence, onSnapshot, doc } from 'firebase/firestore';
-import { getDatabase, ref as rtdbRef, onValue, off as rtdbOff } from 'firebase/database';
+import { getAuth } from 'firebase/auth';
+import { getFirestore, enableNetwork, disableNetwork, enableIndexedDbPersistence, onSnapshot, doc } from 'firebase/firestore';
+import { getDatabase, ref as rtdbRef, onValue } from 'firebase/database';
 import { getAnalytics, isSupported } from 'firebase/analytics';
 
 
@@ -71,13 +71,10 @@ export const subscribeToDocument = (collectionName, docId, callback) => {
 
 export const subscribeToRealTimeDB = (path, callback) => {
   const reference = rtdbRef(rtdb, path);
-  onValue(reference, (snapshot) => {
+  return onValue(reference, (snapshot) => {
     const data = snapshot.val();
     callback(data);
   }, (error) => {
     console.error(`Error subscribing to RTDB path ${path}:`, error);
   });
-  
-  // Return unsubscribe function
-  return () => rtdbOff(reference);
 };
