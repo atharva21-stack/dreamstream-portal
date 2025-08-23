@@ -28,7 +28,12 @@ enableIndexedDbPersistence(db).catch((err) => {
 });
 
 // Initialize analytics only if supported
-const analyticsPromise = isSupported().then(yes => yes ? getAnalytics(app) : null);
+const analyticsPromise = isSupported()
+  .then(yes => yes ? getAnalytics(app) : null)
+  .catch((error) => {
+    console.warn('Firebase Analytics is unavailable:', error);
+    return null;
+  });
 export const analytics = analyticsPromise;
 
 // Function to check Firebase connection status

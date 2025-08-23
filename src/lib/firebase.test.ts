@@ -62,3 +62,34 @@ describe('Realtime Database subscriptions', () => {
     expect(errorLog).toHaveBeenCalledWith('Error subscribing to RTDB path users/example:', error);
   });
 });
+
+describe('optional Analytics initialization', () => {
+  it('skips Analytics in unsupported environments', async () => {
+    const { analytics } = await import('./firebase');
+    await expect(analytics).resolves.toBeNull();
+    expect(mocks.getAnalytics).not.toHaveBeenCalled();
+  });
+
+  it('initializes Analytics when supported', async () => {
+    mocks.isSupported.mockResolvedValue(true);
+    const { analytics } = await import('./firebase');
+    await expect(analytics).resolves.toEqual({ name: 'analytics' });
+    expect(mocks.getAnalytics).toHaveBeenCalledOnce();
+  });
+
+  it('recovers when the support check rejects', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    mocks.isSupported.mockRejectedValue(new Error('Storage unavailable'));
+    const { analytics } = await import('./firebase');
+    await expect(analytics).resolves.toBeNull();
+    expect(mocks.getAnalytics).not.toHaveBeenCalled();
+  });
+
+  it('recovers when Analytics initialization throws', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    mocks.isSupported.mockResolvedValue(true);
+    mocks.getAnalytics.mockImplementationOnce(() => { throw new Error('Analytics unavailable'); });
+    const { analytics } = await import('./firebase');
+    await expect(analytics).resolves.toBeNull();
+  });
+});
