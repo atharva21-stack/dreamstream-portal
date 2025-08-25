@@ -30,6 +30,10 @@ export const updateTaskProgress = async (
   taskId: string,
   completionPercentage: number
 ) => {
+  if (!Number.isFinite(completionPercentage) || completionPercentage < 0 || completionPercentage > 100) {
+    throw new RangeError("Task progress must be a finite number between 0 and 100")
+  }
+
   const db = getDatabase()
   const now = Date.now()
   return update(ref(db, `users/${userId}/tasks/${taskId}`), {

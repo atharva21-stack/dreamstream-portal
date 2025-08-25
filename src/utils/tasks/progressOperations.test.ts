@@ -8,7 +8,7 @@ vi.mock('firebase/database', () => ({
   update: mocks.update,
   push: vi.fn(),
 }));
-import { checkDependencies } from './progressOperations';
+import { checkDependencies, updateTaskProgress } from './progressOperations';
 
 beforeEach(() => {
   mocks.get.mockReset();
@@ -58,5 +58,29 @@ describe('task dependency checks', () => {
   it('preserves network errors so the caller can report a failed check', async () => {
     mocks.get.mockRejectedValueOnce(new Error('Offline'));
     await expect(checkDependencies('user', 'task')).rejects.toThrow('Offline');
+  });
+});
+
+describe('task progress updates', () => {
+  it.each([-1, 101, NaN, Infinity, -Infinity])('rejects invalid progress %s before writing', async (value) => {
+    await expect(updateTaskProgress('user', 'task', value)).rejects.toThrow(RangeError);
+    expect(mocks.update).not.toHaveBeenCalled();
+    expect(mocks.ref).not.toHaveBeenCalled();
+  });
+
+  it.each([0, 37.5, 100])('persists valid progress %s and its activity', async (value) => {
+    vi.spyOn(Date, 'now').mockReturnValue(12345);
+    await updateTaskProgress('user', 'task', value);
+    expect(mocks.update).toHaveBeenCalledWith('users/user/tasks/task', {
+      completionPercentage: value,
+      updatedAt: 12345,
+      lastActivity: { type: 'status_change', timestamp: 12345,
+        details: `Progress updated to ${value}%` },
+    });
+  });
+
+  it('propagates rejected writes without reporting success', async () => {
+    mocks.update.mockRejectedValueOnce(new Error('Permission denied'));
+    await expect(updateTaskProgress('user', 'task', 50)).rejects.toThrow('Permission denied');
   });
 });
