@@ -26,27 +26,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
-import { formatISO, addMinutes, parseISO, format } from "date-fns"
+import { formatISO, addMinutes, format } from "date-fns"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import * as z from "zod"
+import type * as z from "zod"
+import { scheduleSchema as formSchema, meetingStart } from "./scheduleSchema"
 import { fetchUsers, UserSummary } from "@/utils/userOperations"
 import { useQuery } from "@tanstack/react-query"
-
-const formSchema = z.object({
-  title: z.string().min(3, "Title must be at least 3 characters"),
-  description: z.string().optional(),
-  meetingType: z.enum(["team", "one-on-one", "leadership", "organization"]),
-  date: z.date(),
-  time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Please enter a valid time (HH:MM)"),
-  duration: z.number().min(15, "Duration must be at least 15 minutes"),
-  participants: z.array(z.string()).min(1, "Select at least one participant"),
-  location: z.object({
-    type: z.enum(["virtual", "physical"]),
-    link: z.string().optional(),
-    address: z.string().optional(),
-  }),
-})
 
 export function ScheduleMeeting() {
   const { createMeeting } = useMeetings()
@@ -87,9 +73,7 @@ export function ScheduleMeeting() {
       }
 
       // Parse time and create start/end times
-      const [hours, minutes] = values.time.split(":").map(Number)
-      const startDate = new Date(values.date)
-      startDate.setHours(hours, minutes, 0, 0)
+      const startDate = meetingStart(values.date, values.time)
       
       const endDate = addMinutes(startDate, values.duration)
       
