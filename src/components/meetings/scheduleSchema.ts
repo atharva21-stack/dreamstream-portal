@@ -7,6 +7,12 @@ export function meetingStart(date: Date, time: string): Date {
   return start;
 }
 
+export function isPastMeetingDay(date: Date): boolean {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return date.getTime() < today.getTime();
+}
+
 export const scheduleSchema = z.object({
   title: z.string().trim().min(3, 'Title must be at least 3 characters'),
   description: z.string().optional(),

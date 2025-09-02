@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { meetingStart, scheduleSchema } from './scheduleSchema';
+import { isPastMeetingDay, meetingStart, scheduleSchema } from './scheduleSchema';
 
 const valid = () => ({
   title: 'Planning', meetingType: 'team', date: new Date(2026, 8, 21), time: '10:00',
@@ -57,5 +57,13 @@ describe('meeting scheduling validation', () => {
     const start = meetingStart(date, '09:45');
     expect(start).toEqual(new Date(2026, 8, 21, 9, 45));
     expect(date.getHours()).toBe(0);
+  });
+});
+
+describe('meeting calendar dates', () => {
+  it('keeps today selectable after midnight while disabling past dates', () => {
+    expect(isPastMeetingDay(new Date(2026, 8, 19))).toBe(true);
+    expect(isPastMeetingDay(new Date(2026, 8, 20))).toBe(false);
+    expect(isPastMeetingDay(new Date(2026, 8, 21))).toBe(false);
   });
 });

@@ -30,7 +30,7 @@ import { formatISO, addMinutes, format } from "date-fns"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import type * as z from "zod"
-import { scheduleSchema as formSchema, meetingStart } from "./scheduleSchema"
+import { scheduleSchema as formSchema, meetingStart, isPastMeetingDay } from "./scheduleSchema"
 import { fetchUsers, UserSummary } from "@/utils/userOperations"
 import { useQuery } from "@tanstack/react-query"
 
@@ -296,7 +296,7 @@ export function ScheduleMeeting() {
                           selected={field.value}
                           onSelect={field.onChange}
                           initialFocus
-                          disabled={(date) => date < new Date()}
+                          disabled={isPastMeetingDay}
                         />
                       </div>
                       <FormMessage />
@@ -388,6 +388,8 @@ export function ScheduleMeeting() {
                               >
                                 {participant.name}
                                 <Button
+                                  type="button"
+                                  aria-label={`Remove ${participant.name}`}
                                   variant="ghost"
                                   size="icon"
                                   className="h-4 w-4 rounded-full"
@@ -407,8 +409,8 @@ export function ScheduleMeeting() {
               </div>
             </div>
             
-            <Button type="submit" className="w-full">
-              Schedule Meeting
+            <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+              {form.formState.isSubmitting ? "Scheduling…" : "Schedule Meeting"}
             </Button>
           </form>
         </Form>
