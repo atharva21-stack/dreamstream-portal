@@ -1,22 +1,13 @@
+import { readFirebaseConfig } from './firebaseConfig';
 
 import { initializeApp } from 'firebase/app';
-import { getAuth, connectAuthEmulator } from 'firebase/auth';
-import { getFirestore, connectFirestoreEmulator, enableNetwork, disableNetwork, enableIndexedDbPersistence, onSnapshot, doc } from 'firebase/firestore';
-import { getDatabase, ref as rtdbRef, onValue, off as rtdbOff } from 'firebase/database';
+import { getAuth } from 'firebase/auth';
+import { getFirestore, enableNetwork, disableNetwork, enableIndexedDbPersistence, onSnapshot, doc } from 'firebase/firestore';
+import { getDatabase, ref as rtdbRef, onValue } from 'firebase/database';
 import { getAnalytics, isSupported } from 'firebase/analytics';
 
 
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
-  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL
-};
-
+const firebaseConfig = readFirebaseConfig(import.meta.env);
 
 // Initialize Firebase only once
 const app = initializeApp(firebaseConfig);
@@ -37,7 +28,12 @@ enableIndexedDbPersistence(db).catch((err) => {
 });
 
 // Initialize analytics only if supported
-const analyticsPromise = isSupported().then(yes => yes ? getAnalytics(app) : null);
+const analyticsPromise = isSupported()
+  .then(yes => yes ? getAnalytics(app) : null)
+  .catch((error) => {
+    console.warn('Firebase Analytics is unavailable:', error);
+    return null;
+  });
 export const analytics = analyticsPromise;
 
 // Function to check Firebase connection status
@@ -80,13 +76,10 @@ export const subscribeToDocument = (collectionName, docId, callback) => {
 
 export const subscribeToRealTimeDB = (path, callback) => {
   const reference = rtdbRef(rtdb, path);
-  onValue(reference, (snapshot) => {
+  return onValue(reference, (snapshot) => {
     const data = snapshot.val();
     callback(data);
   }, (error) => {
     console.error(`Error subscribing to RTDB path ${path}:`, error);
   });
-  
-  // Return unsubscribe function
-  return () => rtdbOff(reference);
 };

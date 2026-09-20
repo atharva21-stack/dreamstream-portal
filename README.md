@@ -1,79 +1,56 @@
-# Welcome to DreamStream
+# DreamStream
 
-## Project info
-  <a> Please add your FIREBASE Environment variables to the config.env file. 
-  </a>
+DreamStream is a React and TypeScript portal for onboarding, tasks, meetings,
+training, and community workflows. It uses Vite, Firebase, shadcn/ui, and Tailwind CSS.
 
-**Notes from Siddhesh**
+## Local setup
 
-<p align="center">
-  <a>
-    <img alt="NodeJS" src="https://img.shields.io/badge/node-22.13.1-important?style=flat-square"/>
-  </a>
-  <a>
-    <img alt="NPM" src="https://img.shields.io/badge/npm-10.9.2-blueviolet?style=flat-square"/>
-  </a>
-  <a href="https://reactjs.org/">
-    <img alt="Made With React" src="https://img.shields.io/badge/made%20with-react-61DAFB?style=flat-square"/>
-  </a>
-  <a>
-    <img alt="Netlify Status" src="https://api.netlify.com/api/v1/badges/abf59f82-3251-4040-b24c-949b86691642/deploy-status?style=flat-square"/>
-  </a>
-</p>
-
-
-Make sure you are using correct node/npm version.
-
-## How can I edit this code?
-
-There are several ways of editing your application.
-
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+Use Node.js 22 (`nvm use` reads `.nvmrc`) and npm. The commands below use
+`package-lock.json` for reproducible installation.
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+npm ci
+cp .env.example .env.local
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+Fill in `.env.local` with the public web app settings from **Firebase console →
+Project settings**. Set `VITE_FIREBASE_DATABASE_URL` to your Realtime Database URL.
+All listed Firebase settings are required except `VITE_FIREBASE_MEASUREMENT_ID`.
+Never place service-account keys, OAuth client secrets, or other server credentials
+in `VITE_` variables: Vite includes them in the browser bundle.
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```sh
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Open http://localhost:8080. Restart Vite after changing environment values.
+The legacy `config.env` file and `NEXT_PUBLIC_*` names are not read by this Vite app.
+Missing settings produce an error naming the variables that need configuration.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+A working Firebase project, enabled authentication providers, database access rules,
+and the application's deployed callable functions are required for live workflows.
+The socket server is a separate service; configuring the frontend does not create it.
 
-**Use GitHub Codespaces**
+## Validation
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```sh
+npm run typecheck
+npm test
+npm run build
+```
 
-## What technologies are used for this project?
+CI runs these checks after a clean installation on Node.js 22. The tests mock
+Firebase and need no credentials or live services; the production build also needs
+no credentials, but running the built app requires configuration at build time.
+Use `npm run test:watch` during development and `npm run preview` to serve a build.
 
-This project is built with following technologies,
+`npm run lint` remains available, but the existing project has lint violations.
+Full-project lint is not yet a CI gate. These tests cover configuration validation,
+listener cleanup, and optional Analytics initialization; they do not verify hosted
+Firebase authorization, real network behavior, or complete user journeys.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Contribution history exercise
 
+The contribution commits in this exercise use simulated historical dates.
+See [the history note](docs/CONTRIBUTION_HISTORY.md) for the actual implementation
+period and scope.
