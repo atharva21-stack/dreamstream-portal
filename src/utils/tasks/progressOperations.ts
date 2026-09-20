@@ -8,7 +8,11 @@ export const checkDependencies = async (userId: string, taskId: string): Promise
   const taskSnapshot = await get(taskRef)
   const task = taskSnapshot.val()
 
-  if (!task.dependencies || task.dependencies.length === 0) {
+  if (!task) return false
+  if (task.dependencies == null) return true
+  if (!Array.isArray(task.dependencies)) return false
+
+  if (task.dependencies.length === 0) {
     return true
   }
 
@@ -17,7 +21,7 @@ export const checkDependencies = async (userId: string, taskId: string): Promise
   const dependencies = dependenciesSnapshot.val()
 
   return task.dependencies.every((depId: string) => 
-    dependencies[depId] && dependencies[depId].status === 'completed'
+    typeof depId === 'string' && dependencies?.[depId]?.status === 'completed'
   )
 }
 
@@ -26,6 +30,10 @@ export const updateTaskProgress = async (
   taskId: string,
   completionPercentage: number
 ) => {
+  if (!Number.isFinite(completionPercentage) || completionPercentage < 0 || completionPercentage > 100) {
+    throw new RangeError("Task progress must be a finite number between 0 and 100")
+  }
+
   const db = getDatabase()
   const now = Date.now()
   return update(ref(db, `users/${userId}/tasks/${taskId}`), {
